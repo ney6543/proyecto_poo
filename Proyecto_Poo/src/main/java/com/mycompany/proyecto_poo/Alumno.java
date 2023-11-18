@@ -8,7 +8,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
 /**
@@ -21,8 +23,12 @@ public class Alumno {
     private String apellidoMaterno;
     private String numeroDeCuenta;
     private String domicilio;
-    private int semestre, edad;
-    private double promedioAcumulado, materiasCursadas, creditos;
+    public int semestre, edad, materiasPasadas;
+    public double promedioAcumulado, materiasCursadas, creditos, indicadorEscolar;
+
+    public double getIndicadorEscolar() {
+        return indicadorEscolar;
+    }
     Nodo root = new Nodo(1, "1", 0, 0);
     PlanEstudios plan = new PlanEstudios(root);
     
@@ -36,6 +42,7 @@ public class Alumno {
         materiasCursadas = 0;
         semestre = 0;
         edad = 0;
+        materiasPasadas = 0;
     }
 
     /**
@@ -233,7 +240,11 @@ public class Alumno {
         }
     }
    
-    public Alumno generarAlumno(String[] nombres, String[] apellidos, Integer[] creditosNecesarios){
+    public double generarIndicadorEscolar(Alumno alu, Integer[] creditosNecesarios){
+        return ((alu.promedioAcumulado/alu.materiasCursadas)*(alu.materiasPasadas/alu.materiasCursadas)*100*(alu.creditos/creditosNecesarios[alu.semestre-1])*100);
+    }
+    
+    public Alumno generarAlumno(String[] nombres, String[] apellidos, Integer[] creditosNecesarios, PlanEstudiosEstadisticos planMadre){
         Alumno alu = new Alumno();
         alu.generarNombresAleatorios(nombres, apellidos);
         System.out.println("################# Generando al alumno: " + alu.nombre + " " + alu.apellidoPaterno + " " + alu.apellidoMaterno + " ################");
@@ -242,16 +253,18 @@ public class Alumno {
         alu.generarEdadSemestre();
         System.out.println("Su Edad es " + alu.edad + " y esta en el semestre: " + alu.semestre);
         System.out.println("Su trajectoria en la Facultad es la siguiente: ");
-        double ans[] = {0, 0, 0};
-        ans = plan.breadthFrist(root, alu.semestre, alu.materiasCursadas, alu.promedioAcumulado, alu.creditos);
-        alu.promedioAcumulado = ans[0];
-        alu.materiasCursadas = ans[1];
-        alu.creditos = ans[2];
+        Nodo root = new Nodo(1, "1", 0, 0);
+        PlanEstudios plan = new PlanEstudios(root);
+        plan.innit();
+        plan = plan.breadthFrist(alu, plan, planMadre);
+        alu.plan = plan;
         System.out.println("Consiguiendo un promedio de: " + alu.promedioAcumulado/alu.materiasCursadas);
         System.out.println("Los creditos que tiene hasta ahora son: " + alu.creditos + " que es un avanze curricular de: " + alu.creditos/creditosNecesarios[alu.semestre-1]);
-        
+        alu.indicadorEscolar = alu.generarIndicadorEscolar(alu, creditosNecesarios);
+        System.out.println("Basado en los anteriores datos, su numero de IndicadorEscolar es: " + alu.indicadorEscolar);
         return alu;
     }
+    
     
     /**
      * Representación de cadena del objeto Alumno.

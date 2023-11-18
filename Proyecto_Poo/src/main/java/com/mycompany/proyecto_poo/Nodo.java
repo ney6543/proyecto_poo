@@ -14,7 +14,7 @@ import java.util.Queue;
  * @author emilio
  */
 public class Nodo{
-    Integer clave, creditos, semestre, personasCursadas=0, personasPasadas=0;
+    Integer clave, creditos, semestre, calificacionActas=0;
     String nombre;
     LinkedList<Nodo> sons = new LinkedList<>(); 
     Boolean passed = false;

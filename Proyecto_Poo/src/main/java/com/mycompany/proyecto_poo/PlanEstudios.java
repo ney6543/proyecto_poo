@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.StringTokenizer;
 
 /**
  *
@@ -99,7 +100,7 @@ public class PlanEstudios {
         Nodo S06 = new Nodo(6, "6", 0, 0);
         S06.add(NOS62); S06.add(NOS63); S06.add(S07);
         Nodo S05 = new Nodo(5, "5", 0, 0);
-        S05.add(NOS51); S05.add(NOS53); S05.add(NOS15); S05.add(S06);
+        S05.add(NOS51); S05.add(NOS53); S05.add(NOS55); S05.add(S06);
         Nodo S04 = new Nodo(4, "4", 0, 0);
         S04.add(NOS44); S04.add(S05);
         Nodo S03 = new Nodo(3, "3", 0, 0);
@@ -109,36 +110,146 @@ public class PlanEstudios {
         root.add(NOS11); root.add(NOS12); root.add(NOS13); root.add(NOS14); root.add(NOS15); root.add(NOS16); root.add(S02); 
     }        
             
-    public double[] breadthFrist(Nodo Next, int semestre, double materiasCursadas, double promedioAcumulado, double creditos){
+    public PlanEstudios breadthFrist(Alumno alu, PlanEstudios plan, PlanEstudiosEstadisticos planEST){
         Random rand = new Random();
 	Queue<Nodo> queue = new LinkedList();
-        Nodo r = Next;
-        double ans[] = {0, 0, 0};
+        Queue<Nodo> queueEst = new LinkedList();
+        Nodo r = plan.root;
+        NodoEstadistico rEst= planEST.root;
 	if(r!=null){
             queue.add(r);
+            queueEst.add(rEst);
             while(!queue.isEmpty()){
-                r = (Nodo)queue.poll();      
+                r = (Nodo)queue.poll();    
+                rEst = (NodoEstadistico) queueEst.poll();
                 int cal = rand.nextInt(5) + 5;
                 if(r.clave!=0){
-                    promedioAcumulado += cal;
-                    materiasCursadas++;
-                    creditos += r.creditos;
+                    alu.promedioAcumulado += cal;
+                    alu.materiasCursadas++;
+                    rEst.alumnosInscritos++;
+                    rEst.promedioAcumulado += cal;
                     if(cal>5){
-                        System.out.println("La materia de " + r.nombre + " la paso con: " + cal + " cambiando su promedio a " + promedioAcumulado/materiasCursadas + ". Creditos: " + creditos);    
+                        System.out.println("La materia de " + r.nombre + " la paso con: " + cal + " cambiando su promedio a " + alu.promedioAcumulado/alu.materiasCursadas + ". Creditos: " + alu.creditos);    
+                        alu.creditos += r.creditos;
+                        alu.materiasPasadas++;
+                        rEst.alumnosPasados++;
+                        r.passed = true;
                     }else{
-                        System.out.println("La materia de " + r.nombre + " la reprobo con: " + cal + " cambiando su promedio a " + promedioAcumulado/materiasCursadas + ". Creditos: " + creditos);    
+                        System.out.println("La materia de " + r.nombre + " la reprobo con: " + cal + " cambiando su promedio a " + alu.promedioAcumulado/alu.materiasCursadas + ". Creditos: " + alu.creditos);    
                     }
+                    //System.out.println(rEst.alumnosInscritos);
+                    r.calificacionActas = cal;
                 }
                 for(int i = 0; i<r.sons.size(); i++){
-                    if( (cal>5 || r.clave == 0) && semestre>=r.semestre){
+                    if( (r.passed == true || r.clave == 0) && alu.semestre>=r.semestre){
                         queue.add(r.sons.get(i));    
+                        queueEst.add(rEst.sons.get(i));
                     }
                 }
             }
 	}
-        ans[0] = promedioAcumulado;
-        ans[1] = materiasCursadas;
-        ans[2] = creditos;
-        return ans;
+        return plan;
+    }
+    
+    public Nodo find(String nombre){
+	Queue<Nodo> queue = new LinkedList();
+        Nodo r = root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();    
+                if(nombre.equalsIgnoreCase(r.nombre)){
+                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios");
+                    System.out.println(r.calificacionActas);
+                    return r;
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    queue.add(r.sons.get(i));    
+                    
+                }
+            }
+	}
+        System.out.println("No se encontro " + r.nombre + " en el plan de estudios");
+        return null;
+    }
+        
+        
+    public Nodo find(Integer clave){
+	Queue<Nodo> queue = new LinkedList();
+        Nodo r = root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();  
+                if(clave.equals(r.clave)){
+                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios");
+                    return r;
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    queue.add(r.sons.get(i));    
+                    
+                }
+            }
+	}
+        System.out.println("No se encontro " + r.nombre + " en el plan de estudios");
+        return null;
+    }
+    
+    public String to_string(){
+        Queue<Nodo> queue = new LinkedList();
+        String path = "";
+        Nodo r = root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();    
+                if(r.clave == 9995){
+                    path += r.calificacionActas;
+                }else{
+                    path += r.calificacionActas + ":";
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    queue.add(r.sons.get(i));    
+                    
+                }
+            }
+	}
+        return path;
+    }
+
+    public PlanEstudios from_string(Alumno alu, PlanEstudios plan, PlanEstudiosEstadisticos planEST, String path){
+        StringTokenizer token = new StringTokenizer(path, ":");
+        Queue<Nodo> queue = new LinkedList();
+        Queue<Nodo> queueEst = new LinkedList();
+        Nodo r = plan.root;
+        NodoEstadistico rEst= planEST.root;
+        while(token.hasMoreTokens()){
+            queue.add(r);
+            queueEst.add(rEst);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();    
+                rEst = (NodoEstadistico) queueEst.poll();
+                int cal = Integer.parseInt(token.nextToken());
+                if(cal!=0){
+                    alu.promedioAcumulado += cal;
+                    alu.materiasCursadas++;
+                    rEst.alumnosInscritos++;
+                    rEst.promedioAcumulado += cal;
+                    if(cal>5){
+                        alu.creditos += r.creditos;
+                        rEst.alumnosPasados++;
+                        r.passed = true;
+                    }
+                    System.out.println("La materia de " + r.nombre + " esta registrada con: " + cal);    
+                }
+                r.calificacionActas = cal;
+                for(int i = 0; i<r.sons.size(); i++){
+                    queue.add(r.sons.get(i));    
+                    queueEst.add(rEst.sons.get(i));
+                }
+                
+            }
+        }
+        return plan;
     }
 }

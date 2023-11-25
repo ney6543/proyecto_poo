@@ -4,6 +4,10 @@
  */
 package com.mycompany.proyecto_poo;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -55,7 +59,7 @@ public class PlanEstudiosEstadisticos{
         NodoEstadistico NOS51 = new NodoEstadistico(5, "Estructura y Programacion de Computadoras", 1503, 8); NOS51.add(NOS61);
         NodoEstadistico NOS52 = new NodoEstadistico(5, "Dispositivos Electronicos (L+)", 138, 10);
         NodoEstadistico NOS53 = new NodoEstadistico(5, "Lenguajes Formales y Automatas", 442, 8); NOS53.add(NOS73); NOS53.add(NOS74);
-        NodoEstadistico NOS54 = new NodoEstadistico(5, "Señales y Sistemas (L+)", 1473, 8); NOS54.add(NOS74);
+        NodoEstadistico NOS54 = new NodoEstadistico(5, "Señales y Sistemas (L+)", 1473, 8); NOS54.add(NOS75);
         NodoEstadistico NOS55 = new NodoEstadistico(5, "Ingenieria de Software", 1531, 8);
         ///////////////////// SEMESTRE 4 //////////////////////////////////////////////////////
         NodoEstadistico NOS41 = new NodoEstadistico(4, "Fundamentos de Estadistica", 1445, 8);
@@ -147,7 +151,6 @@ public class PlanEstudiosEstadisticos{
         return null;
     }
         
-        
     public Nodo find(Integer clave){
 	Queue<Nodo> queue = new LinkedList();
         Nodo r = root;
@@ -167,6 +170,29 @@ public class PlanEstudiosEstadisticos{
 	}
         System.out.println("No se encontro " + r.nombre + " en el plan de estudios");
         return null;
+    }
+    
+    public void toCsv() throws IOException{
+        FileWriter fw = new FileWriter("EstadisticasDeMaterias.csv");
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter impresoraDeArchivos = new PrintWriter(bw);
+        impresoraDeArchivos.println("Nombre,Clave,Semestre,Creditos,Alumnos que la an Inscrito, Alumnos que la an Pasado,Indice de Aprobacion,Promedio General");
+        Queue<NodoEstadistico> queue = new LinkedList();
+        NodoEstadistico r = root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (NodoEstadistico)queue.poll();
+                if(r.clave!=0 && r.alumnosInscritos>0){
+                    impresoraDeArchivos.println(r.nombre+","+r.clave+","+r.semestre+","+r.creditos+","+r.alumnosInscritos+","+r.alumnosPasados+","+r.alumnosPasados/r.alumnosInscritos+","+r.promedioAcumulado/r.alumnosInscritos);
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    queue.add(r.sons.get(i));    
+                    
+                }
+            }
+	}
+        impresoraDeArchivos.close();
     }
     
     

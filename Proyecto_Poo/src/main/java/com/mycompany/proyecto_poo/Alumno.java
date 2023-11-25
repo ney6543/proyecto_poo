@@ -5,8 +5,12 @@
 package com.mycompany.proyecto_poo;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,13 +29,13 @@ public class Alumno {
     private String domicilio;
     public int semestre, edad, materiasPasadas;
     public double promedioAcumulado, materiasCursadas, creditos, indicadorEscolar;
+    
+    Nodo root = new Nodo(1, "1", 0, 0);
+    PlanEstudios plan = new PlanEstudios(root);
 
     public double getIndicadorEscolar() {
         return indicadorEscolar;
     }
-    Nodo root = new Nodo(1, "1", 0, 0);
-    PlanEstudios plan = new PlanEstudios(root);
-    
 
     /**
      * Constructor vacío de la clase Alumno.
@@ -117,6 +121,8 @@ public class Alumno {
         this.apellidoMaterno = apellidoMaterno;
     }
 
+    
+    
     /**
      * Obtiene el número de cuenta del alumno.
      *
@@ -210,18 +216,21 @@ public class Alumno {
     /**
      * Genera nombres aleatorios para el alumno basados en arreglos dados de nombres y apellidos.
      */
-    public void generarNombresAleatorios(String[] nombres,String[] apellidos) {
+    public void generarNombresAleatoriosYUbicacion(String[] nombres,String[] apellidos,String[] ubicaciones) {
         Random random = new Random();
         nombre = nombres[random.nextInt(nombres.length)];
         apellidoPaterno = apellidos[random.nextInt(apellidos.length)];
         apellidoMaterno = apellidos[random.nextInt(apellidos.length)];
+        domicilio = ubicaciones[random.nextInt(ubicaciones.length)];
     }
     
     public void generarNumeroCuenta(){
         Random random = new Random();
         numeroDeCuenta = "";
+        String num;
         for(int i = 0; i<9; i++){
-            String num = Integer.toString(random.nextInt(9));
+            if(i==0) num = Integer.toString(random.nextInt(8) + 1);
+            else num = Integer.toString(random.nextInt(9));
             numeroDeCuenta += num;
         }
     }
@@ -244,10 +253,11 @@ public class Alumno {
         return ((alu.promedioAcumulado/alu.materiasCursadas)*(alu.materiasPasadas/alu.materiasCursadas)*100*(alu.creditos/creditosNecesarios[alu.semestre-1])*100);
     }
     
-    public Alumno generarAlumno(String[] nombres, String[] apellidos, Integer[] creditosNecesarios, PlanEstudiosEstadisticos planMadre){
+    public Alumno generarAlumno(String[] nombres, String[] apellidos, String[] ubicaciones, Integer[] creditosNecesarios, PlanEstudiosEstadisticos planMadre){
         Alumno alu = new Alumno();
-        alu.generarNombresAleatorios(nombres, apellidos);
+        alu.generarNombresAleatoriosYUbicacion(nombres, apellidos, ubicaciones);
         System.out.println("################# Generando al alumno: " + alu.nombre + " " + alu.apellidoPaterno + " " + alu.apellidoMaterno + " ################");
+        System.out.println("Vive en " + alu.domicilio);
         alu.generarNumeroCuenta();
         System.out.println("Su Numero de cuenta es: " + alu.numeroDeCuenta);
         alu.generarEdadSemestre();
@@ -263,6 +273,34 @@ public class Alumno {
         alu.indicadorEscolar = alu.generarIndicadorEscolar(alu, creditosNecesarios);
         System.out.println("Basado en los anteriores datos, su numero de IndicadorEscolar es: " + alu.indicadorEscolar);
         return alu;
+    }
+    
+    public void toCsv(Alumno alu) throws IOException{
+        FileWriter fw = new FileWriter(nombre+"_"+apellidoPaterno+"_"+apellidoMaterno+".csv");
+        BufferedWriter bw = new BufferedWriter(fw);
+        PrintWriter impresoraDeArchivos = new PrintWriter(bw);
+        impresoraDeArchivos.println("Edad,Ubicacion,Semestre,Numero de Cuenta,Promedio,Creditos");
+        impresoraDeArchivos.println(edad+","+domicilio+","+semestre+","+numeroDeCuenta+","+promedioAcumulado/materiasCursadas+","+creditos);
+        impresoraDeArchivos.println("Trayectoria Escolar");
+        impresoraDeArchivos.println("Asignatura,Clave,Semestre,Calificacion en Actas");
+        Queue<Nodo> queue = new LinkedList();
+        Nodo r = alu.plan.root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();   
+                if(r.clave!=0&&r.calificacionActas!=0){
+                    impresoraDeArchivos.println(r.nombre+","+r.clave+","+r.semestre+","+r.calificacionActas);
+                    System.out.println(r.nombre + "     " + r.calificacionActas);
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    if(r.calificacionActas!=0||r.clave==0){
+                        queue.add(r.sons.get(i));    
+                    }
+                }
+            }
+	}
+        impresoraDeArchivos.close();
     }
     
     

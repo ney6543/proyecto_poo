@@ -9,6 +9,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.StringTokenizer;
 
 /**
@@ -58,7 +59,7 @@ public class PlanEstudios {
         Nodo NOS51 = new Nodo(5, "Estructura y Programacion de Computadoras", 1503, 8); NOS51.add(NOS61);
         Nodo NOS52 = new Nodo(5, "Dispositivos Electronicos (L+)", 138, 10);
         Nodo NOS53 = new Nodo(5, "Lenguajes Formales y Automatas", 442, 8); NOS53.add(NOS73); NOS53.add(NOS74);
-        Nodo NOS54 = new Nodo(5, "Señales y Sistemas (L+)", 1473, 8); NOS54.add(NOS74);
+        Nodo NOS54 = new Nodo(5, "Señales y Sistemas (L+)", 1473, 8); NOS54.add(NOS75);
         Nodo NOS55 = new Nodo(5, "Ingenieria de Software", 1531, 8);
         ///////////////////// SEMESTRE 4 //////////////////////////////////////////////////////
         Nodo NOS41 = new Nodo(4, "Fundamentos de Estadistica", 1445, 8);
@@ -141,7 +142,7 @@ public class PlanEstudios {
                     r.calificacionActas = cal;
                 }
                 for(int i = 0; i<r.sons.size(); i++){
-                    if( (r.passed == true || r.clave == 0) && alu.semestre>=r.semestre){
+                    if( (r.passed == true || r.clave == 0) && alu.semestre+3>=r.semestre){
                         queue.add(r.sons.get(i));    
                         queueEst.add(rEst.sons.get(i));
                     }
@@ -158,18 +159,19 @@ public class PlanEstudios {
             queue.add(r);
             while(!queue.isEmpty()){
                 r = (Nodo)queue.poll();    
-                if(nombre.equalsIgnoreCase(r.nombre)){
-                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios");
+                if(nombre.equalsIgnoreCase(r.nombre) && r.calificacionActas != 0){
+                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios del alumno");
                     System.out.println(r.calificacionActas);
                     return r;
                 }
                 for(int i = 0; i<r.sons.size(); i++){
-                    queue.add(r.sons.get(i));    
-                    
+                     if((r.calificacionActas!=0||r.clave==0)){
+                        queue.add(r.sons.get(i));    
+                    }
                 }
             }
 	}
-        System.out.println("No se encontro " + r.nombre + " en el plan de estudios");
+        System.out.println("No se encontro " + r.nombre + " en el plan de estudios del alumno");
         return null;
     }
         
@@ -181,18 +183,53 @@ public class PlanEstudios {
             queue.add(r);
             while(!queue.isEmpty()){
                 r = (Nodo)queue.poll();  
-                if(clave.equals(r.clave)){
-                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios");
+                if(clave.equals(r.clave ) && r.calificacionActas != 0){
+                    System.out.println("Si se encontro " + r.nombre + " en el plan de estudios del alumno");
                     return r;
                 }
                 for(int i = 0; i<r.sons.size(); i++){
-                    queue.add(r.sons.get(i));    
-                    
+                    if((r.calificacionActas!=0||r.clave==0)){
+                        queue.add(r.sons.get(i));    
+                    }
                 }
             }
 	}
-        System.out.println("No se encontro " + r.nombre + " en el plan de estudios");
+        System.out.println("No se encontro " + r.nombre + " en el plan de estudios del alumno");
         return null;
+    }
+    
+    public Nodo Buscar(PlanEstudios plan){
+        Scanner scan = new Scanner(System.in);
+        System.out.println("¿Quieres buscar la materia por 1.Nombre o por 2.clave?");
+        Integer inpI = scan.nextInt();
+        Nodo nodo = new Nodo();
+        switch(inpI){
+            case(1):
+                String nom;
+                System.out.println("¿Cual es su nombre?");
+                nom = scan.next();
+                nodo = plan.find(nom);
+            break;
+            
+            case(2):
+                Integer clave;
+                System.out.println("¿Cual es la clave?");
+                clave = scan.nextInt();
+                nodo = plan.find(clave);
+            break;
+        }
+        return nodo;
+    }
+    
+    public void edit(Alumno alu, Nodo nodo){
+        Scanner scan = new Scanner(System.in);
+        System.out.println("¿Cual seria la nueva calificacion para " + nodo.nombre + "?");
+        int cal = scan.nextInt();
+        
+        alu.promedioAcumulado -= nodo.calificacionActas + cal;
+        nodo.calificacionActas = cal;
+        
+        
     }
     
     public String to_string(){
@@ -217,11 +254,11 @@ public class PlanEstudios {
         return path;
     }
 
-    public PlanEstudios from_string(Alumno alu, PlanEstudios plan, PlanEstudiosEstadisticos planEST, String path){
+    public void from_string(Alumno alu, PlanEstudiosEstadisticos planEST, String path){
         StringTokenizer token = new StringTokenizer(path, ":");
         Queue<Nodo> queue = new LinkedList();
         Queue<Nodo> queueEst = new LinkedList();
-        Nodo r = plan.root;
+        Nodo r = alu.plan.root;
         NodoEstadistico rEst= planEST.root;
         while(token.hasMoreTokens()){
             queue.add(r);
@@ -240,7 +277,7 @@ public class PlanEstudios {
                         rEst.alumnosPasados++;
                         r.passed = true;
                     }
-                    System.out.println("La materia de " + r.nombre + " esta registrada con: " + cal);    
+                    //System.out.println("La materia de " + r.nombre + " esta registrada con: " + cal);    
                 }
                 r.calificacionActas = cal;
                 for(int i = 0; i<r.sons.size(); i++){
@@ -250,6 +287,62 @@ public class PlanEstudios {
                 
             }
         }
+    }
+    
+    public PlanEstudios addPlanManual(Alumno alu, PlanEstudios plan, PlanEstudiosEstadisticos planEST){
+        Scanner scan = new Scanner(System.in);
+	Queue<Nodo> queue = new LinkedList();
+        Queue<Nodo> queueEst = new LinkedList();
+        Nodo r = plan.root;
+        NodoEstadistico rEst= planEST.root;
+	if(r!=null){
+            queue.add(r);
+            queueEst.add(rEst);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();    
+                rEst = (NodoEstadistico) queueEst.poll();
+                int cal = scan.nextInt();
+                if(r.clave!=0){
+                    System.out.println("¿Cual fue la calificacion para " + r.nombre + "?");
+                    alu.promedioAcumulado += cal;
+                    alu.materiasCursadas++;
+                    rEst.alumnosInscritos++;
+                    rEst.promedioAcumulado += cal;
+                    if(cal>5){
+                        alu.creditos += r.creditos;
+                        alu.materiasPasadas++;
+                        rEst.alumnosPasados++;
+                        r.passed = true;
+                    }
+                    r.calificacionActas = cal;
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    if( (r.passed == true || r.clave == 0) && alu.semestre+3>=r.semestre){
+                        queue.add(r.sons.get(i));    
+                        queueEst.add(rEst.sons.get(i));
+                    }
+                }
+            }
+	}
         return plan;
+    }
+    
+    public void print(){
+    	Queue<Nodo> queue = new LinkedList();
+        Nodo r = root;
+	if(r!=null){
+            queue.add(r);
+            while(!queue.isEmpty()){
+                r = (Nodo)queue.poll();  
+                if(r.clave!=0&&r.calificacionActas!=0){
+                    System.out.println("La materia de " + r.nombre + "la tiene registrada con " + r.calificacionActas);
+                }
+                for(int i = 0; i<r.sons.size(); i++){
+                    if((r.calificacionActas!=0||r.clave==0)){
+                        queue.add(r.sons.get(i));    
+                    }
+                }
+            }
+	}
     }
 }

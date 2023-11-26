@@ -33,7 +33,7 @@ public class Proyecto_Poo {
         
         boolean run = true;
         while(run){
-            System.out.println("1. Crear Alumnado");
+            System.out.println("1. Crear alumnado");
             System.out.println("2. Hacer cosas manuales");
             System.out.println("3. Generar Num. Insc");
             System.out.println("4. Buscar");
